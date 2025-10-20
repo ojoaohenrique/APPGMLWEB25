@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,15 +13,19 @@ import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Camera, Upload, MapPin, User, FileText, MapPinned, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ptBR } from "date-fns/locale";
+import { z } from "zod";
 
 const NovoCadastro = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
   const [capturingLocation, setCapturingLocation] = useState(false);
+  const isEditMode = !!id;
 
   // Informações pessoais
   const [nomeCompleto, setNomeCompleto] = useState("");
@@ -55,6 +59,113 @@ const NovoCadastro = () => {
   // Foto
   const [foto, setFoto] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string>("");
+
+  // Funções de máscara
+  const formatCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    return value;
+  };
+
+  const formatDate = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 8) {
+      return numbers
+        .replace(/(\d{2})(\d)/, '$1/$2')
+        .replace(/(\d{2})(\d)/, '$1/$2');
+    }
+    return value;
+  };
+
+  const validateCPF = (cpf: string) => {
+    const numbers = cpf.replace(/\D/g, '');
+    if (numbers.length !== 11) return false;
+    
+    // Verifica se todos os dígitos são iguais
+    if (/^(\d)\1{10}$/.test(numbers)) return false;
+    
+    // Validação dos dígitos verificadores
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(numbers.charAt(i)) * (10 - i);
+    }
+    let digit = 11 - (sum % 11);
+    if (digit >= 10) digit = 0;
+    if (digit !== parseInt(numbers.charAt(9))) return false;
+    
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(numbers.charAt(i)) * (11 - i);
+    }
+    digit = 11 - (sum % 11);
+    if (digit >= 10) digit = 0;
+    if (digit !== parseInt(numbers.charAt(10))) return false;
+    
+    return true;
+  };
+
+  // Buscar dados do morador se estiver em modo de edição
+  useEffect(() => {
+    if (isEditMode && id) {
+      setLoadingData(true);
+      const fetchMorador = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('moradores')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+          if (error) throw error;
+
+          if (data) {
+            setNomeCompleto(data.nome_completo || "");
+            setCpf(data.cpf || "");
+            if (data.data_nascimento) {
+              setDataNascimento(new Date(data.data_nascimento));
+            }
+            setNomeMae(data.nome_mae || "");
+            setSexo(data.sexo || "");
+            setCidadeNatal(data.cidade_natal || "");
+            setProfissao(data.profissao || "");
+            setRecebeAuxilio(data.recebe_auxilio || false);
+            setQualAuxilio(data.qual_auxilio || "");
+            setTempoSituacaoRua(data.tempo_situacao_rua || "");
+            setTempoEmLaguna(data.tempo_em_laguna || "");
+            setTempoPretendeFicar(data.tempo_pretende_ficar || "");
+            setProcurouAssistencia(data.procurou_assistencia_social || false);
+            setQualServico(data.qual_servico_procurou || "");
+            setLocalAbordagem(data.local_abordagem || "");
+            setLatitude(data.latitude?.toString() || "");
+            setLongitude(data.longitude?.toString() || "");
+            setPossuiVicios(data.possui_vicios || false);
+            setPassagensPolicia(data.passagens_policia || false);
+            setObservacoesPassagens(data.observacoes_passagens || "");
+            setObservacoes(data.observacoes || "");
+            if (data.foto_url) {
+              setFotoPreview(data.foto_url);
+            }
+          }
+        } catch (error: any) {
+          toast({
+            title: "Erro ao carregar dados",
+            description: error.message,
+            variant: "destructive",
+          });
+          navigate("/cadastrados");
+        } finally {
+          setLoadingData(false);
+        }
+      };
+
+      fetchMorador();
+    }
+  }, [id, isEditMode, navigate, toast]);
 
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,10 +214,21 @@ const NovoCadastro = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validação básica
     if (!nomeCompleto || !localAbordagem) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha nome completo e local da abordagem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação de CPF se preenchido
+    if (cpf && !validateCPF(cpf)) {
+      toast({
+        title: "CPF inválido",
+        description: "Por favor, verifique o CPF informado",
         variant: "destructive",
       });
       return;
@@ -137,8 +259,8 @@ const NovoCadastro = () => {
         fotoUrl = publicUrl;
       }
 
-      // Inserir morador
-      const { error } = await supabase.from('moradores').insert([{
+      // Preparar dados do morador
+      const moradorData = {
         user_id: user.id,
         nome_completo: nomeCompleto,
         cpf: cpf || null,
@@ -163,13 +285,28 @@ const NovoCadastro = () => {
         foto_url: fotoUrl,
         observacoes: observacoes || null,
         status_sincronizacao: 'enviado',
-      }]);
+      };
+
+      // Inserir ou atualizar morador
+      let error;
+      if (isEditMode && id) {
+        const result = await supabase
+          .from('moradores')
+          .update(moradorData)
+          .eq('id', id);
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from('moradores')
+          .insert([moradorData]);
+        error = result.error;
+      }
 
       if (error) throw error;
 
       toast({
-        title: "Cadastro realizado!",
-        description: "Morador cadastrado com sucesso",
+        title: isEditMode ? "Cadastro atualizado!" : "Cadastro realizado!",
+        description: isEditMode ? "Alterações salvas com sucesso" : "Morador cadastrado com sucesso",
       });
 
       navigate("/cadastrados");
@@ -184,12 +321,27 @@ const NovoCadastro = () => {
     }
   };
 
+  if (loadingData) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Carregando dados...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Novo Cadastro</h1>
-          <p className="text-muted-foreground">Cadastrar novo morador em situação de rua</p>
+          <h1 className="text-3xl font-bold">{isEditMode ? "Editar Cadastro" : "Novo Cadastro"}</h1>
+          <p className="text-muted-foreground">
+            {isEditMode ? "Atualizar informações do morador" : "Cadastrar novo morador em situação de rua"}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -254,8 +406,9 @@ const NovoCadastro = () => {
                   <Input
                     id="cpf"
                     value={cpf}
-                    onChange={(e) => setCpf(e.target.value)}
+                    onChange={(e) => setCpf(formatCPF(e.target.value))}
                     placeholder="000.000.000-00"
+                    maxLength={14}
                   />
                 </div>
 
@@ -550,7 +703,7 @@ const NovoCadastro = () => {
                   Salvando...
                 </>
               ) : (
-                "Salvar Cadastro"
+                isEditMode ? "Salvar Alterações" : "Salvar Cadastro"
               )}
             </Button>
           </div>

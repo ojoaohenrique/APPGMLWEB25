@@ -21,6 +21,7 @@ const App = () => (
           <Route path="/auth" element={<Index />} />
           <Route path="/cadastrados" element={<Cadastrados />} />
           <Route path="/novo-cadastro" element={<NovoCadastro />} />
+          <Route path="/editar-cadastro/:id" element={<NovoCadastro />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

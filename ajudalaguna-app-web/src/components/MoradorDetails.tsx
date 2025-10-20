@@ -10,6 +10,7 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 interface MoradorDetailsProps {
   morador: Morador;
@@ -19,6 +20,7 @@ interface MoradorDetailsProps {
 
 export function MoradorDetails({ morador, onClose, onUpdate }: MoradorDetailsProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const getInitials = (nome: string) => {
     return nome
@@ -210,9 +212,20 @@ export function MoradorDetails({ morador, onClose, onUpdate }: MoradorDetailsPro
           {morador.latitude && morador.longitude && (
             <div>
               <p className="text-sm text-muted-foreground">Coordenadas GPS</p>
-              <p className="font-medium">
-                {morador.latitude}, {morador.longitude}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium">
+                  {morador.latitude}, {morador.longitude}
+                </p>
+                <a
+                  href={`https://www.google.com/maps?q=${morador.latitude},${morador.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-primary hover:underline"
+                >
+                  <MapPin className="h-4 w-4" />
+                  Ver no Mapa
+                </a>
+              </div>
             </div>
           )}
         </CardContent>
@@ -258,6 +271,14 @@ export function MoradorDetails({ morador, onClose, onUpdate }: MoradorDetailsPro
 
       {/* Botões de Ação */}
       <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          className="flex-1"
+          onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
+        >
+          <Edit className="mr-2 h-4 w-4" />
+          Editar
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" className="flex-1">
