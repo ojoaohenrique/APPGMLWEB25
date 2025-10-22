@@ -13,10 +13,8 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nomeCompleto, setNomeCompleto] = useState("");
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
@@ -46,16 +44,7 @@ const Auth = () => {
     if (!email || !password) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!isLogin && !nomeCompleto) {
-      toast({
-        title: "Erro",
-        description: "Preencha seu nome completo",
+        description: "Preencha o email e a senha",
         variant: "destructive",
       });
       return;
@@ -64,42 +53,20 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Login realizado!",
-          description: "Bem-vindo de volta",
-        });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              nome_completo: nomeCompleto,
-            },
-            emailRedirectTo: `${window.location.origin}/`,
-          },
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Cadastro realizado!",
-          description: "Você já pode fazer login",
-        });
-        
-        setIsLogin(true);
-      }
+      toast({
+        title: "Login realizado!",
+        description: "Bem-vindo de volta",
+      });
     } catch (error: any) {
       toast({
-        title: "Erro",
+        title: "Erro no login",
         description: error.message,
         variant: "destructive",
       });
@@ -121,25 +88,11 @@ const Auth = () => {
           </div>
           <CardTitle className="text-2xl">Guarda Municipal de Laguna</CardTitle>
           <CardDescription>
-            {isLogin ? "Faça login para acessar o sistema" : "Crie sua conta no sistema"}
+            Faça login para acessar o sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
-            {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome Completo</Label>
-                <Input
-                  id="nome"
-                  type="text"
-                  placeholder="Seu nome completo"
-                  value={nomeCompleto}
-                  onChange={(e) => setNomeCompleto(e.target.value)}
-                  required={!isLogin}
-                />
-              </div>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -166,16 +119,7 @@ const Auth = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Carregando..." : isLogin ? "Entrar" : "Cadastrar"}
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={() => setIsLogin(!isLogin)}
-            >
-              {isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Faça login"}
+              {loading ? "Carregando..." : "Entrar"}
             </Button>
           </form>
         </CardContent>

@@ -31,6 +31,7 @@ export type Database = {
           observacoes_passagens: string | null
           passagens_policia: boolean | null
           possui_vicios: boolean | null
+          quais_vicios: string | null
           procurou_assistencia_social: boolean | null
           profissao: string | null
           qual_auxilio: string | null
@@ -60,6 +61,7 @@ export type Database = {
           observacoes_passagens?: string | null
           passagens_policia?: boolean | null
           possui_vicios?: boolean | null
+          quais_vicios?: string | null
           procurou_assistencia_social?: boolean | null
           profissao?: string | null
           qual_auxilio?: string | null
@@ -89,6 +91,7 @@ export type Database = {
           observacoes_passagens?: string | null
           passagens_policia?: boolean | null
           possui_vicios?: boolean | null
+          quais_vicios?: string | null
           procurou_assistencia_social?: boolean | null
           profissao?: string | null
           qual_auxilio?: string | null

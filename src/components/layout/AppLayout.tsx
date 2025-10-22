@@ -57,7 +57,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <main className="flex-1 overflow-auto">
-          <header className="sticky top-0 z-10 h-14 border-b border-border bg-card/50 backdrop-blur flex items-center px-4 md:hidden">
+          <header className="sticky top-0 z-10 h-14 border-b border-border bg-card/50 backdrop-blur flex items-center px-4">
             <SidebarTrigger />
           </header>
           <div className="p-4 md:p-6 lg:p-8">

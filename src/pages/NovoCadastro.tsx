@@ -10,9 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Camera, Upload, MapPin, User, FileText, MapPinned, Loader2 } from "lucide-react";
+import { Camera, Upload, MapPin, User, FileText, MapPinned, Loader2 } from "lucide-react";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ptBR } from "date-fns/locale";
@@ -31,6 +29,7 @@ const NovoCadastro = () => {
   const [nomeCompleto, setNomeCompleto] = useState("");
   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState<Date>();
+  const [dataNascimentoInput, setDataNascimentoInput] = useState("");
   const [nomeMae, setNomeMae] = useState("");
   const [sexo, setSexo] = useState("");
   const [cidadeNatal, setCidadeNatal] = useState("");
@@ -52,6 +51,7 @@ const NovoCadastro = () => {
 
   // Informações adicionais
   const [possuiVicios, setPossuiVicios] = useState(false);
+  const [quaisVicios, setQuaisVicios] = useState("");
   const [passagensPolicia, setPassagensPolicia] = useState(false);
   const [observacoesPassagens, setObservacoesPassagens] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -80,6 +80,23 @@ const NovoCadastro = () => {
         .replace(/(\d{2})(\d)/, '$1/$2');
     }
     return value;
+  };
+
+  const handleDataNascimentoChange = (value: string) => {
+    const formatted = formatDate(value);
+    setDataNascimentoInput(formatted);
+    
+    // Tentar parsear a data se estiver completa
+    if (formatted.length === 10) {
+      try {
+        const parsedDate = parse(formatted, "dd/MM/yyyy", new Date());
+        if (!isNaN(parsedDate.getTime())) {
+          setDataNascimento(parsedDate);
+        }
+      } catch (error) {
+        // Ignorar erro de parsing
+      }
+    }
   };
 
   const validateCPF = (cpf: string) => {
@@ -127,7 +144,9 @@ const NovoCadastro = () => {
             setNomeCompleto(data.nome_completo || "");
             setCpf(data.cpf || "");
             if (data.data_nascimento) {
-              setDataNascimento(new Date(data.data_nascimento));
+              const date = new Date(data.data_nascimento);
+              setDataNascimento(date);
+              setDataNascimentoInput(format(date, "dd/MM/yyyy"));
             }
             setNomeMae(data.nome_mae || "");
             setSexo(data.sexo || "");
@@ -144,6 +163,7 @@ const NovoCadastro = () => {
             setLatitude(data.latitude?.toString() || "");
             setLongitude(data.longitude?.toString() || "");
             setPossuiVicios(data.possui_vicios || false);
+            setQuaisVicios(data.quais_vicios || "");
             setPassagensPolicia(data.passagens_policia || false);
             setObservacoesPassagens(data.observacoes_passagens || "");
             setObservacoes(data.observacoes || "");
@@ -280,6 +300,7 @@ const NovoCadastro = () => {
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         possui_vicios: possuiVicios,
+        quais_vicios: quaisVicios || null,
         passagens_policia: passagensPolicia,
         observacoes_passagens: observacoesPassagens || null,
         foto_url: fotoUrl || (isEditMode && fotoPreview ? fotoPreview : null),
@@ -337,11 +358,19 @@ const NovoCadastro = () => {
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">{isEditMode ? "Editar Cadastro" : "Novo Cadastro"}</h1>
-          <p className="text-muted-foreground">
-            {isEditMode ? "Atualizar informações do morador" : "Cadastrar novo morador em situação de rua"}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">{isEditMode ? "Editar Cadastro" : "Novo Cadastro"}</h1>
+            <p className="text-muted-foreground">
+              {isEditMode ? "Atualizar informações do morador" : "Cadastrar novo morador em situação de rua"}
+            </p>
+          </div>
+          <img 
+            src="/logo-guarda.png" 
+            alt="Logo Guarda Municipal" 
+            className="h-24 w-24 object-contain"
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -413,31 +442,14 @@ const NovoCadastro = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Data de Nascimento</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !dataNascimento && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dataNascimento ? format(dataNascimento, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={dataNascimento}
-                        onSelect={setDataNascimento}
-                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Label htmlFor="dataNascimento">Data de Nascimento</Label>
+                  <Input
+                    id="dataNascimento"
+                    value={dataNascimentoInput}
+                    onChange={(e) => handleDataNascimentoChange(e.target.value)}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -651,6 +663,18 @@ const NovoCadastro = () => {
                   onCheckedChange={setPossuiVicios}
                 />
               </div>
+
+              {possuiVicios && (
+                <div className="space-y-2">
+                  <Label htmlFor="quaisVicios">Quais vícios?</Label>
+                  <Input
+                    id="quaisVicios"
+                    value={quaisVicios}
+                    onChange={(e) => setQuaisVicios(e.target.value)}
+                    placeholder="Ex: Álcool, Tabaco, Drogas..."
+                  />
+                </div>
+              )}
 
               <div className="flex items-center justify-between space-x-2">
                 <Label htmlFor="passagens">Passagens pela polícia?</Label>

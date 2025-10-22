@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, User, Calendar, Phone, Edit, Trash2, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
+import { Search, MapPin, User, Calendar, Phone, Edit, Trash2, AlertCircle, RefreshCw, Loader2, Users, CalendarClock, HandHelping } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Morador } from "@/types/morador";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +37,23 @@ const Cadastrados = () => {
       return data as Morador[];
     },
     retry: 2,
+  });
+
+  // Query para cadastros do mês atual
+  const { data: statsMes, isLoading: isLoadingMes } = useQuery({
+    queryKey: ['stats-mes'],
+    queryFn: async () => {
+      const today = new Date();
+      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+
+      const { error, count } = await supabase
+        .from('moradores')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', firstDayOfMonth);
+
+      if (error) throw error;
+      return count ?? 0;
+    },
   });
 
   // Filtrar moradores
@@ -94,6 +111,10 @@ const Cadastrados = () => {
     }
   };
 
+  const totalCadastros = moradores.length;
+  const comAuxilio = moradores.filter(m => m.recebe_auxilio).length;
+  const locaisUnicos = new Set(moradores.map(m => m.local_abordagem)).size;
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -109,6 +130,55 @@ const Cadastrados = () => {
             <User className="mr-2 h-4 w-4" />
             Novo Cadastro
           </Button>
+        </div>
+
+        {/* Cards de Estatísticas */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Cadastros</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalCadastros}</div>
+              <p className="text-xs text-muted-foreground">moradores cadastrados</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Cadastros Este Mês</CardTitle>
+              <CalendarClock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoadingMes ? '...' : (statsMes ?? 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">novos registros no mês atual</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Recebem Auxílio</CardTitle>
+              <HandHelping className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{comAuxilio}</div>
+              <p className="text-xs text-muted-foreground">com auxílio do governo</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Locais Diferentes</CardTitle>
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{locaisUnicos}</div>
+              <p className="text-xs text-muted-foreground">pontos de abordagem</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Busca */}

@@ -67,9 +67,7 @@ export function AppSidebar() {
     <Sidebar
       className={collapsed ? "w-14" : "w-60"}
     >
-      <SidebarTrigger className="m-2 self-end" />
-      
-      <div className={`flex items-center gap-3 px-4 ${collapsed ? 'justify-center' : ''} mb-6`}>
+      <div className={`flex items-center gap-3 px-4 ${collapsed ? 'justify-center' : ''} mb-6 mt-4`}>
         <Shield className="h-8 w-8 text-primary" />
         {!collapsed && (
           <div>
