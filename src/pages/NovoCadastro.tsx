@@ -516,7 +516,7 @@ const NovoCadastro = () => {
             )}
             {permissions?.isReadOnly && (
               <div className="mt-2 flex items-center gap-2 text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded-md">
-                <span className="font-medium">👁️ Modo Visualização</span>
+                <span className="font-medium">Modo Visualização</span>
                 <span>Você não tem permissão para editar</span>
               </div>
             )}
