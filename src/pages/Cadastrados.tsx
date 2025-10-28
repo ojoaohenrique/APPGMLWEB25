@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, User, Calendar, Phone, Edit, Trash2, AlertCircle, RefreshCw, Loader2, Users, CalendarClock, HandHelping, Eye } from "lucide-react";
+import { Search, MapPin, User, Calendar, Phone, Edit, Trash2, AlertCircle, RefreshCw, Loader2, Users, CalendarClock, HandHelping } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Morador } from "@/types/morador";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,11 +16,13 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const Cadastrados = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [busca, setBusca] = useState("");
+  const { permissions } = usePermissions();
 
   const { data: moradores = [], isLoading, error, refetch } = useQuery({
     queryKey: ['moradores'],
@@ -253,30 +255,24 @@ const Cadastrados = () => {
                         {format(new Date(morador.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </Badge>
                       <div className="flex gap-2">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => navigate(`/cadastrado/${morador.id}`)}
-                          className="h-8 w-8 p-0"
-                          title="Ver Detalhes"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
-                          className="h-8 w-8 p-0"
-                          title="Editar"
-                        >
-                          <Edit className="h-3.5 w-3.5" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm" className="h-8 w-8 p-0" title="Excluir">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </AlertDialogTrigger>
+                        {!permissions?.isReadOnly && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
+                            className="h-8 w-8 p-0"
+                            title="Editar"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {permissions?.canDelete && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm" className="h-8 w-8 p-0" title="Excluir">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
@@ -295,7 +291,8 @@ const Cadastrados = () => {
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
-                        </AlertDialog>
+                          </AlertDialog>
+                        )}
                       </div>
                     </div>
                     
