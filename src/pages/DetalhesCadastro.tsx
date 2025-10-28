@@ -48,7 +48,29 @@ const DetalhesCadastro = () => {
         .order('ordem', { ascending: true });
       
       if (error) throw error;
-      return data;
+      
+      // Gerar URLs públicas para as fotos
+      const fotosComUrl = data.map(foto => {
+        // Se a URL já for completa, usar ela
+        if (foto.foto_url && (foto.foto_url.startsWith('http://') || foto.foto_url.startsWith('https://'))) {
+          return {
+            ...foto,
+            url: foto.foto_url
+          };
+        }
+        
+        // Caso contrário, gerar URL pública do Supabase
+        const { data: { publicUrl } } = supabase.storage
+          .from('morador-fotos')
+          .getPublicUrl(foto.foto_url || '');
+        
+        return {
+          ...foto,
+          url: publicUrl
+        };
+      });
+      
+      return fotosComUrl;
     },
     enabled: !!id,
   });
