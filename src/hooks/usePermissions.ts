@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type Cargo = 'comandante' | 'administrador' | 'desenvolvedor' | 'estagiario' | 'visualizador';
+export type Cargo = 'comandante' | 'administrador' | 'desenvolvedor' | 'guarda' | 'estagiario' | 'visualizador';
 
 export interface UserPermissions {
   cargo: Cargo;
@@ -31,6 +31,14 @@ const PERMISSIONS_MAP: Record<Cargo, Omit<UserPermissions, 'cargo'>> = {
     isReadOnly: false,
   },
   desenvolvedor: {
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
+    canViewAll: true,
+    isAdmin: false,
+    isReadOnly: false,
+  },
+  guarda: {
     canCreate: true,
     canEdit: true,
     canDelete: false,
@@ -133,6 +141,7 @@ export const getCargoLabel = (cargo: Cargo): string => {
     comandante: 'Comandante',
     administrador: 'Administrador',
     desenvolvedor: 'Desenvolvedor',
+    guarda: 'Guarda',
     estagiario: 'Estagiário',
     visualizador: 'Visualizador',
   };
@@ -145,6 +154,7 @@ export const getCargoBadgeColor = (cargo: Cargo): string => {
     comandante: 'bg-purple-500 text-white',
     administrador: 'bg-blue-500 text-white',
     desenvolvedor: 'bg-green-500 text-white',
+    guarda: 'bg-cyan-500 text-white',
     estagiario: 'bg-yellow-500 text-black',
     visualizador: 'bg-gray-500 text-white',
   };
