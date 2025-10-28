@@ -14,6 +14,43 @@ export type Database = {
   }
   public: {
     Tables: {
+      morador_fotos: {
+        Row: {
+          id: string
+          morador_id: string
+          foto_url: string
+          descricao: string | null
+          ordem: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          morador_id: string
+          foto_url: string
+          descricao?: string | null
+          ordem?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          morador_id?: string
+          foto_url?: string
+          descricao?: string | null
+          ordem?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "morador_fotos_morador_id_fkey"
+            columns: ["morador_id"]
+            referencedRelation: "moradores"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       moradores: {
         Row: {
           cidade_natal: string | null

@@ -1,50 +1,46 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield } from "lucide-react";
+import { Shield, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Session } from "@supabase/supabase-js";
 
-const Auth = () => {
+const CadastroAdmin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [session, setSession] = useState<Session | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  useEffect(() => {
-    // Verificar se já está autenticado
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        navigate("/");
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        navigate("/");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       toast({
         title: "Erro",
-        description: "Preencha o email e a senha",
+        description: "Preencha todos os campos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A senha deve ter no mínimo 6 caracteres",
         variant: "destructive",
       });
       return;
@@ -53,20 +49,34 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
       });
 
       if (error) throw error;
 
       toast({
-        title: "Login realizado!",
-        description: "Bem-vindo de volta",
+        title: "Cadastro realizado!",
+        description: "Verifique seu email para confirmar o cadastro",
       });
+
+      // Limpar formulário
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      
+      // Redirecionar para login após 2 segundos
+      setTimeout(() => {
+        navigate("/auth");
+      }, 2000);
+      
     } catch (error: any) {
       toast({
-        title: "Erro no login",
+        title: "Erro no cadastro",
         description: error.message,
         variant: "destructive",
       });
@@ -75,24 +85,29 @@ const Auth = () => {
     }
   };
 
-  if (session) {
-    return null;
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute left-4 top-4"
+            onClick={() => navigate("/auth")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
           <div className="flex justify-center mb-4">
             <Shield className="h-16 w-16 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Guarda Municipal de Laguna</CardTitle>
+          <CardTitle className="text-2xl">Cadastro de Administrador</CardTitle>
           <CardDescription>
-            Faça login para acessar o sistema
+            Crie uma nova conta de acesso ao sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleCadastro} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -116,17 +131,27 @@ const Auth = () => {
                 required
                 minLength={6}
               />
+              <p className="text-xs text-muted-foreground">
+                Mínimo de 6 caracteres
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+              />
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Carregando..." : "Entrar"}
+              {loading ? "Cadastrando..." : "Criar Conta"}
             </Button>
-
-            <div className="text-center mt-4">
-              <p className="text-xs text-muted-foreground">
-                Não possui acesso? Entre em contato com o administrador do sistema.
-              </p>
-            </div>
           </form>
         </CardContent>
       </Card>
@@ -134,4 +159,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default CadastroAdmin;

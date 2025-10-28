@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Upload, MapPin, User, FileText, MapPinned, Loader2 } from "lucide-react";
+import { Camera, Upload, MapPin, User, FileText, MapPinned, Loader2, X, Image } from "lucide-react";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ptBR } from "date-fns/locale";
@@ -56,9 +56,14 @@ const NovoCadastro = () => {
   const [observacoesPassagens, setObservacoesPassagens] = useState("");
   const [observacoes, setObservacoes] = useState("");
 
-  // Foto
+  // Foto principal (identificação)
   const [foto, setFoto] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string>("");
+  
+  // Fotos adicionais
+  const [fotosAdicionais, setFotosAdicionais] = useState<File[]>([]);
+  const [fotosAdicionaisPreview, setFotosAdicionaisPreview] = useState<string[]>([]);
+  const [fotosAdicionaisExistentes, setFotosAdicionaisExistentes] = useState<Array<{id: string, url: string, descricao?: string}>>([]);
 
   // Funções de máscara
   const formatCPF = (value: string) => {
@@ -171,6 +176,21 @@ const NovoCadastro = () => {
               setFotoPreview(data.foto_url);
             }
           }
+
+          // Buscar fotos adicionais
+          const { data: fotosData, error: fotosError } = await supabase
+            .from('morador_fotos')
+            .select('*')
+            .eq('morador_id', id)
+            .order('ordem', { ascending: true });
+
+          if (!fotosError && fotosData) {
+            setFotosAdicionaisExistentes(fotosData.map(f => ({
+              id: f.id,
+              url: f.foto_url,
+              descricao: f.descricao || undefined
+            })));
+          }
         } catch (error: any) {
           toast({
             title: "Erro ao carregar dados",
@@ -196,6 +216,78 @@ const NovoCadastro = () => {
         setFotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFotosAdicionaisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const MAX_FOTOS = 15;
+    const totalAtual = fotosAdicionaisExistentes.length + fotosAdicionais.length;
+    const espacoDisponivel = MAX_FOTOS - totalAtual;
+    
+    if (files.length > 0) {
+      // Verificar limite
+      if (totalAtual >= MAX_FOTOS) {
+        toast({
+          title: "Limite atingido",
+          description: `Você já adicionou o máximo de ${MAX_FOTOS} fotos adicionais`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Limitar quantidade de fotos a adicionar
+      const fotosParaAdicionar = files.slice(0, espacoDisponivel);
+      
+      if (files.length > espacoDisponivel) {
+        toast({
+          title: "Limite de fotos",
+          description: `Apenas ${espacoDisponivel} foto(s) foram adicionadas. Limite máximo: ${MAX_FOTOS} fotos`,
+        });
+      }
+      
+      setFotosAdicionais(prev => [...prev, ...fotosParaAdicionar]);
+      
+      // Criar previews
+      fotosParaAdicionar.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFotosAdicionaisPreview(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    // Limpar o input para permitir selecionar as mesmas fotos novamente
+    e.target.value = '';
+  };
+
+  const removerFotoAdicional = (index: number) => {
+    setFotosAdicionais(prev => prev.filter((_, i) => i !== index));
+    setFotosAdicionaisPreview(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removerFotoExistente = async (fotoId: string) => {
+    try {
+      const { error } = await supabase
+        .from('morador_fotos')
+        .delete()
+        .eq('id', fotoId);
+
+      if (error) throw error;
+
+      setFotosAdicionaisExistentes(prev => prev.filter(f => f.id !== fotoId));
+      
+      toast({
+        title: "Foto removida",
+        description: "Foto adicional removida com sucesso",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao remover foto",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -257,26 +349,35 @@ const NovoCadastro = () => {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log("🔍 Iniciando processo de salvamento...");
+      
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log("👤 Usuário:", user?.id, "Erro:", userError);
+      
       if (!user) throw new Error("Usuário não autenticado");
 
       let fotoUrl = null;
 
       // Upload da foto se existir
       if (foto) {
+        console.log("📸 Fazendo upload da foto...");
         const fileExt = foto.name.split('.').pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
         const { error: uploadError, data } = await supabase.storage
           .from('morador-fotos')
           .upload(fileName, foto);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("❌ Erro no upload da foto:", uploadError);
+          throw uploadError;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from('morador-fotos')
           .getPublicUrl(fileName);
 
         fotoUrl = publicUrl;
+        console.log("✅ Foto enviada:", fotoUrl);
       }
 
       // Preparar dados do morador
@@ -308,22 +409,74 @@ const NovoCadastro = () => {
         status_sincronizacao: 'enviado',
       };
 
+      console.log("📝 Dados preparados:", moradorData);
+
       // Inserir ou atualizar morador
-      let error;
+      let result;
       if (isEditMode && id) {
-        const result = await supabase
+        console.log("🔄 Atualizando morador ID:", id);
+        result = await supabase
           .from('moradores')
           .update(moradorData)
-          .eq('id', id);
-        error = result.error;
+          .eq('id', id)
+          .select();
+        console.log("📊 Resultado da atualização:", result);
       } else {
-        const result = await supabase
+        console.log("➕ Inserindo novo morador...");
+        result = await supabase
           .from('moradores')
-          .insert([moradorData]);
-        error = result.error;
+          .insert([moradorData])
+          .select();
+        console.log("📊 Resultado da inserção:", result);
       }
 
-      if (error) throw error;
+      if (result.error) {
+        console.error("❌ Erro do Supabase:", result.error);
+        throw result.error;
+      }
+
+      const moradorId = isEditMode ? id : result.data[0]?.id;
+
+      // Upload de fotos adicionais
+      if (fotosAdicionais.length > 0 && moradorId) {
+        console.log("📸 Fazendo upload de fotos adicionais...");
+        
+        for (let i = 0; i < fotosAdicionais.length; i++) {
+          const fotoFile = fotosAdicionais[i];
+          const fileExt = fotoFile.name.split('.').pop();
+          const fileName = `${user.id}-${moradorId}-${Date.now()}-${i}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('morador-fotos')
+            .upload(fileName, fotoFile);
+
+          if (uploadError) {
+            console.error("❌ Erro no upload da foto adicional:", uploadError);
+            continue; // Continua com as próximas fotos mesmo se uma falhar
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('morador-fotos')
+            .getPublicUrl(fileName);
+
+          // Salvar referência no banco
+          const { error: dbError } = await supabase
+            .from('morador_fotos')
+            .insert({
+              morador_id: moradorId,
+              foto_url: publicUrl,
+              ordem: fotosAdicionaisExistentes.length + i
+            });
+
+          if (dbError) {
+            console.error("❌ Erro ao salvar referência da foto:", dbError);
+          } else {
+            console.log("✅ Foto adicional salva:", publicUrl);
+          }
+        }
+      }
+
+      console.log("✅ Cadastro salvo com sucesso!");
 
       toast({
         title: isEditMode ? "Cadastro atualizado!" : "Cadastro realizado!",
@@ -332,9 +485,10 @@ const NovoCadastro = () => {
 
       navigate("/cadastrados");
     } catch (error: any) {
+      console.error("❌ Erro completo:", error);
       toast({
         title: "Erro ao cadastrar",
-        description: error.message,
+        description: error.message || "Erro desconhecido ao salvar",
         variant: "destructive",
       });
     } finally {
@@ -374,12 +528,12 @@ const NovoCadastro = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Foto */}
+          {/* Foto Principal de Identificação */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-5 w-5" />
-                Foto do Morador
+                Foto Principal de Identificação
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -396,7 +550,7 @@ const NovoCadastro = () => {
                 <Label htmlFor="foto-upload" className="flex-1">
                   <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary transition">
                     <Upload className="h-5 w-5" />
-                    <span>Escolher Foto</span>
+                    <span>Escolher Foto Principal</span>
                   </div>
                   <Input
                     id="foto-upload"
@@ -706,6 +860,115 @@ const NovoCadastro = () => {
                   placeholder="Informações adicionais relevantes..."
                   rows={4}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Fotos Adicionais (Opcional) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                Fotos Adicionais
+                <span className="text-sm font-normal text-muted-foreground ml-2">(Opcional - até 15 fotos)</span>
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Adicione até 15 fotos complementares como documentos, situação do local, contexto da abordagem, etc.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Fotos existentes (modo edição) */}
+              {fotosAdicionaisExistentes.length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Fotos já cadastradas</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {fotosAdicionaisExistentes.map((foto) => (
+                      <div key={foto.id} className="relative group">
+                        <img
+                          src={foto.url}
+                          alt="Foto adicional"
+                          className="w-full h-32 object-cover rounded-lg border-2 border-border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition"
+                          onClick={() => removerFotoExistente(foto.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Previews de novas fotos */}
+              {fotosAdicionaisPreview.length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Novas fotos a serem enviadas</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {fotosAdicionaisPreview.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border-2 border-border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition"
+                          onClick={() => removerFotoAdicional(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Botão para adicionar fotos */}
+              {(fotosAdicionaisExistentes.length + fotosAdicionaisPreview.length) < 15 ? (
+                <Label htmlFor="fotos-adicionais-upload" className="w-full cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-border rounded-lg hover:bg-secondary hover:border-primary transition-all">
+                    <Upload className="h-5 w-5" />
+                    <span className="font-medium">
+                      {fotosAdicionaisPreview.length > 0 || fotosAdicionaisExistentes.length > 0
+                        ? 'Adicionar Mais Fotos'
+                        : 'Clique para Adicionar Fotos (até 15)'}
+                    </span>
+                  </div>
+                  <Input
+                    id="fotos-adicionais-upload"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFotosAdicionaisChange}
+                  />
+                </Label>
+              ) : (
+                <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-muted rounded-lg bg-muted/50">
+                  <span className="font-medium text-muted-foreground">
+                    Limite de 15 fotos atingido
+                  </span>
+                </div>
+              )}
+
+              {/* Contador de fotos */}
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <p className="text-muted-foreground">
+                  Total: {fotosAdicionaisExistentes.length + fotosAdicionaisPreview.length} / 15 foto(s)
+                </p>
+                {(fotosAdicionaisExistentes.length + fotosAdicionaisPreview.length) >= 15 && (
+                  <span className="text-xs text-orange-500 font-medium">
+                    (Limite máximo)
+                  </span>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -20,6 +20,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Index />} />
+          {/* Rota de cadastro público removida - apenas via Supabase */}
           <Route path="/cadastrados" element={<Cadastrados />} />
           <Route path="/novo-cadastro" element={<NovoCadastro />} />
           <Route path="/editar-cadastro/:id" element={<NovoCadastro />} />
