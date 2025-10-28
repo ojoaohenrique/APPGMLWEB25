@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Camera, Upload, MapPin, User, FileText, MapPinned, Loader2, X, Image } from "lucide-react";
+import { CriadorInfo } from "@/components/CriadorInfo";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ptBR } from "date-fns/locale";
@@ -20,9 +22,14 @@ const NovoCadastro = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const { permissions, loading: permissionsLoading, userEmail, userId } = usePermissions();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const isEditMode = !!id;
+  
+  // Informações do criador (para modo visualização)
+  const [criadorNome, setCriadorNome] = useState("");
+  const [dataCriacao, setDataCriacao] = useState("");
 
   // Informações pessoais
   const [nomeCompleto, setNomeCompleto] = useState("");
@@ -165,9 +172,16 @@ const NovoCadastro = () => {
             setProcurouAssistencia(data.procurou_assistencia_social || false);
             setQualServico(data.qual_servico_procurou || "");
             setLocalAbordagem(data.local_abordagem || "");
-            setLatitude(data.latitude?.toString() || "");
-            setLongitude(data.longitude?.toString() || "");
+            setBairro(data.bairro || "");
+            setRua(data.rua || "");
+            setInformacoesLocal(data.informacoes_local || "");
             setPossuiVicios(data.possui_vicios || false);
+            
+            // Carregar informações do criador
+            setCriadorNome(data.criado_por_nome || "");
+            if (data.created_at) {
+              setDataCriacao(format(new Date(data.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }));
+            }
             setQuaisVicios(data.quais_vicios || "");
             setPassagensPolicia(data.passagens_policia || false);
             setObservacoesPassagens(data.observacoes_passagens || "");
@@ -377,6 +391,11 @@ const NovoCadastro = () => {
         foto_url: fotoUrl || (isEditMode && fotoPreview ? fotoPreview : null),
         observacoes: observacoes || null,
         status_sincronizacao: 'enviado',
+        // Rastreamento de autoria (apenas para novos registros)
+        ...(isEditMode ? {} : {
+          criado_por_id: userId,
+          criado_por_nome: userEmail,
+        }),
       };
 
       console.log("📝 Dados preparados:", moradorData);
@@ -488,6 +507,19 @@ const NovoCadastro = () => {
             <p className="text-muted-foreground">
               {isEditMode ? "Atualizar informações do morador" : "Cadastrar novo morador em situação de rua"}
             </p>
+            {isEditMode && criadorNome && (
+              <CriadorInfo 
+                criadorNome={criadorNome} 
+                dataCriacao={dataCriacao}
+                className="mt-2"
+              />
+            )}
+            {permissions?.isReadOnly && (
+              <div className="mt-2 flex items-center gap-2 text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded-md">
+                <span className="font-medium">👁️ Modo Visualização</span>
+                <span>Você não tem permissão para editar</span>
+              </div>
+            )}
           </div>
           <img 
             src="/logo-guarda.png" 
@@ -938,9 +970,13 @@ const NovoCadastro = () => {
               className="flex-1"
               onClick={() => navigate("/cadastrados")}
             >
-              Cancelar
+              {permissions?.isReadOnly ? "Voltar" : "Cancelar"}
             </Button>
-            <Button type="submit" className="flex-1" disabled={loading}>
+            <Button 
+              type="submit" 
+              className="flex-1" 
+              disabled={loading || permissions?.isReadOnly}
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
