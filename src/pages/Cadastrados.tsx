@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, User, Calendar, Phone, Edit, Trash2, AlertCircle, RefreshCw, Loader2, Users, CalendarClock, HandHelping } from "lucide-react";
+import { Search, MapPin, User, Calendar, Phone, Edit, Trash2, AlertCircle, RefreshCw, Loader2, Users, CalendarClock, HandHelping, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Morador } from "@/types/morador";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -241,144 +241,216 @@ const Cadastrados = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {moradoresFiltrados.map((morador) => (
-              <Card key={morador.id} className="bg-card hover:bg-secondary/50 transition-colors">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src={morador.foto_url || undefined} />
-                        <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                          {getInitials(morador.nome_completo)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <CardTitle className="text-xl mb-2 text-foreground">{morador.nome_completo}</CardTitle>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          {morador.cpf && (
-                            <p className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              CPF: {morador.cpf}
-                            </p>
+              <Card key={morador.id} className="bg-card hover:shadow-lg transition-all duration-300 overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Header com foto e ações */}
+                  <div className="relative bg-gradient-to-br from-primary/5 via-primary/3 to-transparent p-6 pb-20">
+                    <div className="flex justify-between items-start mb-4">
+                      <Badge variant="secondary" className="text-xs">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {format(new Date(morador.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </Badge>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => navigate(`/cadastrado/${morador.id}`)}
+                          className="h-8 w-8 p-0"
+                          title="Ver Detalhes"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
+                          className="h-8 w-8 p-0"
+                          title="Editar"
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm" className="h-8 w-8 p-0" title="Excluir">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir o cadastro de {morador.nome_completo}? 
+                                Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDelete(morador)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                    
+                    {/* Foto centralizada e proeminente */}
+                    <div className="flex justify-center">
+                      <div className="relative">
+                        <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+                          <AvatarImage src={morador.foto_url || undefined} className="object-cover" />
+                          <AvatarFallback className="text-3xl bg-primary/10 text-primary font-semibold">
+                            {getInitials(morador.nome_completo)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {morador.foto_url && (
+                          <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1.5 border-2 border-background">
+                            <User className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Nome e informações principais */}
+                  <div className="px-6 -mt-12 relative z-10">
+                    <div className="bg-background rounded-lg shadow-md p-4 border">
+                      <h3 className="text-xl font-bold text-center text-foreground mb-3">
+                        {morador.nome_completo}
+                      </h3>
+                      
+                      {/* Informações essenciais com ícones */}
+                      <div className="space-y-2.5">
+                        {morador.cpf && (
+                          <div className="flex items-center gap-3 text-sm bg-secondary/30 rounded-md px-3 py-2">
+                            <div className="bg-primary/10 p-1.5 rounded">
+                              <User className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs text-muted-foreground font-medium">CPF</p>
+                              <p className="font-semibold text-foreground">{morador.cpf}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-3 text-sm bg-secondary/30 rounded-md px-3 py-2">
+                          <div className="bg-primary/10 p-1.5 rounded">
+                            <MapPin className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-muted-foreground font-medium">Local de Abordagem</p>
+                            <p className="font-semibold text-foreground">{morador.local_abordagem}</p>
+                          </div>
+                        </div>
+
+                        {morador.data_nascimento && (
+                          <div className="flex items-center gap-3 text-sm bg-secondary/30 rounded-md px-3 py-2">
+                            <div className="bg-primary/10 p-1.5 rounded">
+                              <Calendar className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs text-muted-foreground font-medium">Data de Nascimento</p>
+                              <p className="font-semibold text-foreground">
+                                {format(new Date(morador.data_nascimento), "dd/MM/yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Informações detalhadas */}
+                  <div className="px-6 py-4 space-y-4">
+                    {/* Grid de informações secundárias */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {morador.sexo && (
+                        <div className="bg-secondary/20 rounded-md p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Sexo</p>
+                          <p className="font-medium text-foreground capitalize text-sm">{morador.sexo}</p>
+                        </div>
+                      )}
+                      {morador.profissao && (
+                        <div className="bg-secondary/20 rounded-md p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Profissão</p>
+                          <p className="font-medium text-foreground text-sm">{morador.profissao}</p>
+                        </div>
+                      )}
+                      {morador.cidade_natal && (
+                        <div className="bg-secondary/20 rounded-md p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Cidade Natal</p>
+                          <p className="font-medium text-foreground text-sm">{morador.cidade_natal}</p>
+                        </div>
+                      )}
+                      {morador.tempo_situacao_rua && (
+                        <div className="bg-secondary/20 rounded-md p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Tempo em Situação de Rua</p>
+                          <p className="font-medium text-foreground text-sm">{morador.tempo_situacao_rua}</p>
+                        </div>
+                      )}
+                      {morador.tempo_em_laguna && (
+                        <div className="bg-secondary/20 rounded-md p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Tempo em Laguna</p>
+                          <p className="font-medium text-foreground text-sm">{morador.tempo_em_laguna}</p>
+                        </div>
+                      )}
+                      {morador.nome_mae && (
+                        <div className="bg-secondary/20 rounded-md p-3 col-span-2">
+                          <p className="text-xs text-muted-foreground mb-1">Nome da Mãe</p>
+                          <p className="font-medium text-foreground text-sm">{morador.nome_mae}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Badges de status */}
+                    {(morador.recebe_auxilio || morador.possui_vicios || morador.passagens_policia || morador.procurou_assistencia_social) && (
+                      <div>
+                        <Separator className="mb-3" />
+                        <div className="flex flex-wrap gap-2">
+                          {morador.recebe_auxilio && (
+                            <Badge variant="secondary" className="text-xs">
+                              <HandHelping className="h-3 w-3 mr-1" />
+                              Auxílio{morador.qual_auxilio ? `: ${morador.qual_auxilio}` : ''}
+                            </Badge>
                           )}
-                          <p className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            {morador.local_abordagem}
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            Cadastrado em {format(new Date(morador.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                          </p>
+                          {morador.possui_vicios && (
+                            <Badge variant="outline" className="text-xs">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Possui Vícios
+                            </Badge>
+                          )}
+                          {morador.passagens_policia && (
+                            <Badge variant="destructive" className="text-xs">
+                              Passagens Policiais
+                            </Badge>
+                          )}
+                          {morador.procurou_assistencia_social && (
+                            <Badge variant="secondary" className="text-xs">
+                              Assistência Social
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir o cadastro de {morador.nome_completo}? 
-                              Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDelete(morador)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                </CardHeader>
-                <Separator />
-                <CardContent className="pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                    {morador.data_nascimento && (
-                      <div>
-                        <p className="text-muted-foreground">Data de Nascimento</p>
-                        <p className="font-medium text-foreground">
-                          {format(new Date(morador.data_nascimento), "dd/MM/yyyy", { locale: ptBR })}
-                        </p>
-                      </div>
                     )}
-                    {morador.sexo && (
-                      <div>
-                        <p className="text-muted-foreground">Sexo</p>
-                        <p className="font-medium text-foreground capitalize">{morador.sexo}</p>
-                      </div>
-                    )}
-                    {morador.nome_mae && (
-                      <div>
-                        <p className="text-muted-foreground">Nome da Mãe</p>
-                        <p className="font-medium text-foreground">{morador.nome_mae}</p>
-                      </div>
-                    )}
-                    {morador.cidade_natal && (
-                      <div>
-                        <p className="text-muted-foreground">Cidade Natal</p>
-                        <p className="font-medium text-foreground">{morador.cidade_natal}</p>
-                      </div>
-                    )}
-                    {morador.profissao && (
-                      <div>
-                        <p className="text-muted-foreground">Profissão</p>
-                        <p className="font-medium text-foreground">{morador.profissao}</p>
-                      </div>
-                    )}
-                    {morador.tempo_situacao_rua && (
-                      <div>
-                        <p className="text-muted-foreground">Tempo em Situação de Rua</p>
-                        <p className="font-medium text-foreground">{morador.tempo_situacao_rua}</p>
-                      </div>
-                    )}
-                    {morador.tempo_em_laguna && (
-                      <div>
-                        <p className="text-muted-foreground">Tempo em Laguna</p>
-                        <p className="font-medium text-foreground">{morador.tempo_em_laguna}</p>
+
+                    {/* Observações */}
+                    {morador.observacoes && (
+                      <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1">Observações</p>
+                            <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{morador.observacoes}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {morador.recebe_auxilio && (
-                      <Badge variant="secondary">
-                        Recebe Auxílio{morador.qual_auxilio ? `: ${morador.qual_auxilio}` : ''}
-                      </Badge>
-                    )}
-                    {morador.possui_vicios && (
-                      <Badge variant="outline">Possui Vícios</Badge>
-                    )}
-                    {morador.passagens_policia && (
-                      <Badge variant="destructive">Passagens Policiais</Badge>
-                    )}
-                    {morador.procurou_assistencia_social && (
-                      <Badge variant="secondary">Procurou Assistência Social</Badge>
-                    )}
-                  </div>
-                  {morador.observacoes && (
-                    <div className="mt-4 p-3 bg-secondary/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Observações</p>
-                      <p className="text-sm text-foreground">{morador.observacoes}</p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))}

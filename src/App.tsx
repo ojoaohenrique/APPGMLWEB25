@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import NovoCadastro from "./pages/NovoCadastro";
 import Cadastrados from "./pages/Cadastrados";
+import DetalhesCadastro from "./pages/DetalhesCadastro";
 import TestePage from "./pages/TestePage";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/auth" element={<Index />} />
           {/* Rota de cadastro público removida - apenas via Supabase */}
           <Route path="/cadastrados" element={<Cadastrados />} />
+          <Route path="/cadastrado/:id" element={<DetalhesCadastro />} />
           <Route path="/novo-cadastro" element={<NovoCadastro />} />
           <Route path="/editar-cadastro/:id" element={<NovoCadastro />} />
           <Route path="/teste" element={<TestePage />} />
