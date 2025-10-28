@@ -22,7 +22,6 @@ const NovoCadastro = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
-  const [capturingLocation, setCapturingLocation] = useState(false);
   const isEditMode = !!id;
 
   // Informações pessoais
@@ -46,8 +45,9 @@ const NovoCadastro = () => {
 
   // Localização
   const [localAbordagem, setLocalAbordagem] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [rua, setRua] = useState("");
+  const [informacoesLocal, setInformacoesLocal] = useState("");
 
   // Informações adicionais
   const [possuiVicios, setPossuiVicios] = useState(false);
@@ -291,37 +291,6 @@ const NovoCadastro = () => {
     }
   };
 
-  const captureLocation = () => {
-    setCapturingLocation(true);
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatitude(position.coords.latitude.toString());
-          setLongitude(position.coords.longitude.toString());
-          toast({
-            title: "Localização capturada!",
-            description: "Coordenadas GPS obtidas com sucesso",
-          });
-          setCapturingLocation(false);
-        },
-        (error) => {
-          toast({
-            title: "Erro ao capturar localização",
-            description: "Verifique as permissões de GPS",
-            variant: "destructive",
-          });
-          setCapturingLocation(false);
-        }
-      );
-    } else {
-      toast({
-        title: "GPS não disponível",
-        description: "Seu dispositivo não suporta geolocalização",
-        variant: "destructive",
-      });
-      setCapturingLocation(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -398,8 +367,9 @@ const NovoCadastro = () => {
         procurou_assistencia_social: procurouAssistencia,
         qual_servico_procurou: qualServico || null,
         local_abordagem: localAbordagem,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
+        bairro: bairro || null,
+        rua: rua || null,
+        informacoes_local: informacoesLocal || null,
         possui_vicios: possuiVicios,
         quais_vicios: quaisVicios || null,
         passagens_policia: passagensPolicia,
@@ -750,56 +720,43 @@ const NovoCadastro = () => {
                   id="local"
                   value={localAbordagem}
                   onChange={(e) => setLocalAbordagem(e.target.value)}
-                  placeholder="Ex: Praça Vidal Ramos"
+                  placeholder="Ex: Praça Vidal Ramos, Centro"
                   required
                 />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="latitude">Latitude</Label>
+                  <Label htmlFor="bairro">Bairro</Label>
                   <Input
-                    id="latitude"
-                    value={latitude}
-                    onChange={(e) => setLatitude(e.target.value)}
-                    placeholder="-28.4843"
-                    type="number"
-                    step="any"
+                    id="bairro"
+                    value={bairro}
+                    onChange={(e) => setBairro(e.target.value)}
+                    placeholder="Ex: Centro, Mar Grosso..."
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="longitude">Longitude</Label>
+                  <Label htmlFor="rua">Rua/Avenida</Label>
                   <Input
-                    id="longitude"
-                    value={longitude}
-                    onChange={(e) => setLongitude(e.target.value)}
-                    placeholder="-48.7787"
-                    type="number"
-                    step="any"
+                    id="rua"
+                    value={rua}
+                    onChange={(e) => setRua(e.target.value)}
+                    placeholder="Ex: Rua Raulino Horn"
                   />
                 </div>
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={captureLocation}
-                disabled={capturingLocation}
-              >
-                {capturingLocation ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Capturando...
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="mr-2 h-4 w-4" />
-                    Capturar Localização GPS
-                  </>
-                )}
-              </Button>
+              <div className="space-y-2">
+                <Label htmlFor="informacoesLocal">Informações do Local</Label>
+                <Textarea
+                  id="informacoesLocal"
+                  value={informacoesLocal}
+                  onChange={(e) => setInformacoesLocal(e.target.value)}
+                  placeholder="Descreva características do local, pontos de referência, condições do ambiente..."
+                  rows={3}
+                />
+              </div>
             </CardContent>
           </Card>
 
