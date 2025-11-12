@@ -27,9 +27,13 @@ export interface Morador {
   local_abordagem: string;
   latitude?: number;
   longitude?: number;
+  bairro?: string;
+  rua?: string;
+  informacoes_local?: string;
   
   // Informações adicionais
   possui_vicios: boolean;
+  quais_vicios?: string;
   passagens_policia: boolean;
   observacoes_passagens?: string;
   
@@ -45,4 +49,7 @@ export interface Morador {
   // Timestamps
   created_at: string;
   updated_at: string;
+  
+  // Informações de auditoria
+  criado_por_nome?: string;
 }

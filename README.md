@@ -1,73 +1,244 @@
-# Welcome to your Lovable project
+# 🛡️ Ajuda Laguna App
 
-## Project info
+Sistema de cadastro e gerenciamento de ocorrências para a Guarda Municipal de Laguna/SC.
 
-**URL**: https://lovable.dev/projects/b2f578dd-275a-4936-ab96-6b1a4e729358
+## 📱 Sobre o Projeto
 
-## How can I edit this code?
+Aplicação web e mobile (Android) para registro de abordagens e ocorrências, com captura de GPS, upload de fotos e sistema de permissões baseado em cargos.
 
-There are several ways of editing your application.
+### ✨ Funcionalidades
 
-**Use Lovable**
+- 🔐 **Autenticação segura** com sistema de cargos (Comandante/Guarda)
+- ➕ **Cadastro de ocorrências** com validação de dados
+- 📍 **Captura automática de GPS** para localização precisa
+- 📷 **Upload de fotos** com armazenamento em nuvem
+- 📋 **Listagem e busca** de cadastros
+- ✏️ **Edição e exclusão** de registros
+- 📊 **Dashboard** com estatísticas em tempo real
+- 🔗 **Integração com BNMP** (Banco Nacional de Mandados de Prisão)
+- 📱 **App Android nativo** via Capacitor
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b2f578dd-275a-4936-ab96-6b1a4e729358) and start prompting.
+## 🚀 Status do Projeto
 
-Changes made via Lovable will be committed automatically to this repo.
+- ✅ **Web:** Deployado na Vercel
+- ⏳ **Android:** Em fase de testes (APK em desenvolvimento)
 
-**Use your preferred IDE**
+## 🛠️ Tecnologias
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Frontend
+- **React 18** - Framework UI
+- **TypeScript** - Tipagem estática
+- **Vite** - Build tool
+- **Tailwind CSS** - Estilização
+- **shadcn/ui** - Componentes UI
+- **React Router** - Navegação
+- **React Hook Form** - Formulários
+- **Zod** - Validação
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Backend/Infraestrutura
+- **Supabase** - Backend as a Service
+  - PostgreSQL (Banco de dados)
+  - Authentication (Autenticação)
+  - Storage (Armazenamento de fotos)
+  - Row Level Security (Segurança)
+- **Vercel** - Deploy e hosting
 
-Follow these steps:
+### Mobile
+- **Capacitor 7** - Framework híbrido
+- **Android SDK** - Plataforma nativa
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 📚 Documentação
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 🎯 Início Rápido
+- **[INDICE_DOCUMENTACAO.md](INDICE_DOCUMENTACAO.md)** - Índice completo de toda documentação
+- **[PLANO_ACAO_RESUMIDO.md](PLANO_ACAO_RESUMIDO.md)** - Cronograma dos próximos 7 dias
+- **[COMANDOS_RAPIDOS.md](COMANDOS_RAPIDOS.md)** - Comandos essenciais
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 📱 Android
+- **[PROXIMOS_PASSOS_ANDROID.md](PROXIMOS_PASSOS_ANDROID.md)** - Guia completo para gerar APK
+- **[build-android.ps1](build-android.ps1)** - Script automático de build
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 🧪 Testes
+- **[CHECKLIST_TESTES.md](CHECKLIST_TESTES.md)** - Checklist completo de testes
+
+### 🎓 Treinamento
+- **[ROTEIRO_TREINAMENTO.md](ROTEIRO_TREINAMENTO.md)** - Roteiro para treinar guardas
+
+### 👥 Gestão
+- **[MANUAL_CARGOS_PERMISSOES.md](MANUAL_CARGOS_PERMISSOES.md)** - Sistema de cargos e permissões
+- **[GUIA_LOGINS.md](GUIA_LOGINS.md)** - Como criar e gerenciar usuários
+
+## 🏃 Como Executar
+
+### Pré-requisitos
+- Node.js 18+ e npm
+- Git
+- Conta no Supabase (para backend)
+
+### Desenvolvimento Local
+
+```powershell
+# 1. Clone o repositório
+git clone <URL_DO_REPOSITORIO>
+cd ajudalaguna-app-web01
+
+# 2. Instale as dependências
+npm install
+
+# 3. Configure as variáveis de ambiente
+# Copie .env.example para .env e preencha com suas chaves do Supabase
+cp .env.example .env
+
+# 4. Inicie o servidor de desenvolvimento
 npm run dev
+
+# Acesse: http://localhost:5173
 ```
 
-**Edit a file directly in GitHub**
+### Build para Produção
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```powershell
+# Build da aplicação web
+npm run build
 
-**Use GitHub Codespaces**
+# Preview do build
+npm run preview
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Build Android
 
-## What technologies are used for this project?
+```powershell
+# Opção 1: Script automático
+.\build-android.ps1
 
-This project is built with:
+# Opção 2: Passo a passo
+npm run build
+npx cap sync android
+npx cap open android
+# No Android Studio: Build > Build APK
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📦 Scripts Disponíveis
 
-## How can I deploy this project?
+```powershell
+npm run dev          # Inicia servidor de desenvolvimento
+npm run build        # Gera build de produção
+npm run preview      # Preview do build
+npm run lint         # Verifica erros de código
+```
 
-Simply open [Lovable](https://lovable.dev/projects/b2f578dd-275a-4936-ab96-6b1a4e729358) and click on Share -> Publish.
+## 🔧 Configuração
 
-## Can I connect a custom domain to my Lovable project?
+### Variáveis de Ambiente (.env)
 
-Yes, you can!
+```env
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Capacitor (capacitor.config.ts)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```typescript
+{
+  appId: 'br.com.ajudalaguna.app',
+  appName: 'Ajuda Laguna',
+  webDir: 'dist'
+}
+```
+
+## 🗄️ Estrutura do Banco de Dados
+
+### Tabela: `cadastros`
+- `id` (uuid, PK)
+- `nome_completo` (text)
+- `cpf` (text)
+- `rg` (text)
+- `data_nascimento` (date)
+- `nome_mae` (text)
+- `telefone` (text)
+- `tipo_ocorrencia` (text)
+- `local` (text)
+- `observacoes` (text)
+- `latitude` (numeric)
+- `longitude` (numeric)
+- `foto_url` (text)
+- `created_at` (timestamp)
+- `user_id` (uuid, FK)
+
+### Tabela: `user_roles`
+- `id` (uuid, PK)
+- `user_id` (uuid, FK)
+- `role` (text: 'comandante' | 'guarda')
+- `created_at` (timestamp)
+
+## 🔒 Segurança
+
+- ✅ Row Level Security (RLS) habilitado
+- ✅ Autenticação obrigatória
+- ✅ Sistema de cargos e permissões
+- ✅ Validação de dados no frontend e backend
+- ✅ Cadastro público bloqueado
+
+## 🚀 Deploy
+
+### Vercel (Automático)
+```powershell
+git push origin main
+# Deploy automático via Vercel
+```
+
+### Manual
+```powershell
+npm run build
+# Upload da pasta dist/ para seu servidor
+```
+
+## 🤝 Contribuindo
+
+Este é um projeto interno da Guarda Municipal de Laguna. Para contribuir:
+
+1. Crie uma branch para sua feature
+2. Faça suas alterações
+3. Teste localmente
+4. Faça commit e push
+5. Abra um Pull Request
+
+## 📞 Suporte
+
+Para dúvidas ou problemas:
+- Consulte a documentação em `INDICE_DOCUMENTACAO.md`
+- Verifique o troubleshooting em `COMANDOS_RAPIDOS.md`
+- Entre em contato com o administrador do sistema
+
+## 📝 Licença
+
+Uso interno - Guarda Municipal de Laguna/SC
+
+## 🎯 Roadmap
+
+### V1.0 (Atual)
+- [x] Aplicação web completa
+- [x] Deploy na Vercel
+- [x] Sistema de autenticação
+- [x] CRUD de cadastros
+- [x] Upload de fotos
+- [x] Captura de GPS
+- [x] Sistema de cargos
+- [ ] APK Android (em testes)
+
+### V1.1 (Próximo)
+- [ ] Modo offline
+- [ ] Busca avançada
+- [ ] Relatórios em PDF
+- [ ] Múltiplas fotos por cadastro
+- [ ] Notificações push
+
+### V2.0 (Futuro)
+- [ ] Assinatura digital
+- [ ] Modo escuro
+- [ ] Publicação na Play Store
+- [ ] App iOS
+
+---
+
+**Desenvolvido para a Guarda Municipal de Laguna/SC** 🛡️

@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, User, Calendar, Phone, Edit, Trash2, AlertCircle, RefreshCw, Loader2, Users, CalendarClock, HandHelping } from "lucide-react";
+import { Search, MapPin, User, Calendar, Edit, Trash2, AlertCircle, RefreshCw, Users, CalendarClock, HandHelping } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Morador } from "@/types/morador";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,7 +16,6 @@ import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Separator } from "@/components/ui/separator";
 import { usePermissions } from "@/hooks/usePermissions";
 
 const Cadastrados = () => {
@@ -78,6 +78,22 @@ const Cadastrados = () => {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const InfoItem = ({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value?: string | null }) => {
+    if (!value) return null;
+
+    return (
+      <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-background px-4 py-3 shadow-sm">
+        <div className="mt-1 rounded-lg bg-primary/10 p-2 text-primary">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+          <p className="mt-1 text-sm font-medium leading-tight text-foreground">{value}</p>
+        </div>
+      </div>
+    );
   };
 
   const handleDelete = async (morador: Morador) => {
@@ -243,209 +259,185 @@ const Cadastrados = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             {moradoresFiltrados.map((morador) => (
-              <Card key={morador.id} className="bg-card hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <CardContent className="p-0">
-                  {/* Header com foto e ações */}
-                  <div className="relative bg-gradient-to-br from-primary/5 via-primary/3 to-transparent p-6 pb-20">
-                    <div className="flex justify-between items-start mb-4">
-                      <Badge variant="secondary" className="text-xs">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {format(new Date(morador.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </Badge>
-                      <div className="flex gap-2">
-                        {!permissions?.isReadOnly && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
-                            className="h-8 w-8 p-0"
-                            title="Editar"
+              <Card 
+                key={morador.id} 
+                className="border border-border/60 bg-card shadow-sm transition-transform duration-300 hover:-translate-y-1"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-primary/5 px-6 py-4">
+                  <Badge variant="secondary" className="text-sm font-semibold px-3 py-1">
+                    <Calendar className="h-4 w-4 mr-1.5" />
+                    {format(new Date(morador.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                  </Badge>
+                  <div className="flex flex-wrap gap-2">
+                    {!permissions?.isReadOnly && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
+                        className="h-9 px-4 font-bold uppercase tracking-wide border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                        title="Editar cadastro"
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                      </Button>
+                    )}
+                    {permissions?.canDelete && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="h-9 px-3 font-semibold" 
+                            title="Excluir cadastro"
                           >
-                            <Edit className="h-3.5 w-3.5" />
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
                           </Button>
-                        )}
-                        {permissions?.canDelete && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm" className="h-8 w-8 p-0" title="Excluir">
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja excluir o cadastro de {morador.nome_completo}? 
-                                Esta ação não pode ser desfeita.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDelete(morador)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Foto centralizada e proeminente */}
-                    <div className="flex justify-center">
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir o cadastro de {morador.nome_completo}? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDelete(morador)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                </div>
+
+                <CardContent className="space-y-6 p-6">
+                  <div className="flex flex-col gap-6 md:flex-row md:items-start">
+                    <div className="flex justify-center md:block">
                       <div className="relative">
-                        <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+                        <Avatar className="h-36 w-36 border-4 border-background shadow-lg ring-2 ring-primary/20">
                           <AvatarImage src={morador.foto_url || undefined} className="object-cover" />
-                          <AvatarFallback className="text-3xl bg-primary/10 text-primary font-semibold">
+                          <AvatarFallback className="text-4xl bg-primary/10 text-primary font-bold">
                             {getInitials(morador.nome_completo)}
                           </AvatarFallback>
                         </Avatar>
                         {morador.foto_url && (
-                          <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1.5 border-2 border-background">
-                            <User className="h-3 w-3 text-white" />
+                          <div className="absolute -bottom-2 -right-2 rounded-full border-4 border-background bg-green-500 p-2 shadow-md">
+                            <User className="h-4 w-4 text-white" />
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Nome e informações principais */}
-                  <div className="px-6 -mt-12 relative z-10">
-                    <div className="bg-background rounded-lg shadow-md p-4 border">
-                      <h3 className="text-xl font-bold text-center text-foreground mb-3">
-                        {morador.nome_completo}
-                      </h3>
-                      
-                      {/* Informações essenciais com ícones */}
-                      <div className="space-y-2.5">
-                        {morador.cpf && (
-                          <div className="flex items-center gap-3 text-sm bg-secondary/30 rounded-md px-3 py-2">
-                            <div className="bg-primary/10 p-1.5 rounded">
-                              <User className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs text-muted-foreground font-medium">CPF</p>
-                              <p className="font-semibold text-foreground">{morador.cpf}</p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-3 text-sm bg-secondary/30 rounded-md px-3 py-2">
-                          <div className="bg-primary/10 p-1.5 rounded">
-                            <MapPin className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs text-muted-foreground font-medium">Local de Abordagem</p>
-                            <p className="font-semibold text-foreground">{morador.local_abordagem}</p>
-                          </div>
-                        </div>
-
-                        {morador.data_nascimento && (
-                          <div className="flex items-center gap-3 text-sm bg-secondary/30 rounded-md px-3 py-2">
-                            <div className="bg-primary/10 p-1.5 rounded">
-                              <Calendar className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs text-muted-foreground font-medium">Data de Nascimento</p>
-                              <p className="font-semibold text-foreground">
-                                {format(new Date(morador.data_nascimento), "dd/MM/yyyy", { locale: ptBR })}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Informações detalhadas */}
-                  <div className="px-6 py-4 space-y-4">
-                    {/* Grid de informações secundárias */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {morador.sexo && (
-                        <div className="bg-secondary/20 rounded-md p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Sexo</p>
-                          <p className="font-medium text-foreground capitalize text-sm">{morador.sexo}</p>
-                        </div>
-                      )}
-                      {morador.profissao && (
-                        <div className="bg-secondary/20 rounded-md p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Profissão</p>
-                          <p className="font-medium text-foreground text-sm">{morador.profissao}</p>
-                        </div>
-                      )}
-                      {morador.cidade_natal && (
-                        <div className="bg-secondary/20 rounded-md p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Cidade Natal</p>
-                          <p className="font-medium text-foreground text-sm">{morador.cidade_natal}</p>
-                        </div>
-                      )}
-                      {morador.tempo_situacao_rua && (
-                        <div className="bg-secondary/20 rounded-md p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Tempo em Situação de Rua</p>
-                          <p className="font-medium text-foreground text-sm">{morador.tempo_situacao_rua}</p>
-                        </div>
-                      )}
-                      {morador.tempo_em_laguna && (
-                        <div className="bg-secondary/20 rounded-md p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Tempo em Laguna</p>
-                          <p className="font-medium text-foreground text-sm">{morador.tempo_em_laguna}</p>
-                        </div>
-                      )}
-                      {morador.nome_mae && (
-                        <div className="bg-secondary/20 rounded-md p-3 col-span-2">
-                          <p className="text-xs text-muted-foreground mb-1">Nome da Mãe</p>
-                          <p className="font-medium text-foreground text-sm">{morador.nome_mae}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Badges de status */}
-                    {(morador.recebe_auxilio || morador.possui_vicios || morador.passagens_policia || morador.procurou_assistencia_social) && (
+                    <div className="flex-1 space-y-6">
                       <div>
-                        <Separator className="mb-3" />
-                        <div className="flex flex-wrap gap-2">
-                          {morador.recebe_auxilio && (
-                            <Badge variant="secondary" className="text-xs">
-                              <HandHelping className="h-3 w-3 mr-1" />
-                              Auxílio{morador.qual_auxilio ? `: ${morador.qual_auxilio}` : ''}
-                            </Badge>
-                          )}
-                          {morador.possui_vicios && (
-                            <Badge variant="outline" className="text-xs">
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              Possui Vícios
-                            </Badge>
-                          )}
-                          {morador.passagens_policia && (
-                            <Badge variant="destructive" className="text-xs">
-                              Passagens Policiais
-                            </Badge>
-                          )}
-                          {morador.procurou_assistencia_social && (
-                            <Badge variant="secondary" className="text-xs">
-                              Assistência Social
-                            </Badge>
-                          )}
-                        </div>
+                        <h3 className="text-2xl font-bold leading-tight text-foreground">{morador.nome_completo}</h3>
+                        {morador.profissao && (
+                          <p className="text-sm text-muted-foreground">Profissão: {morador.profissao}</p>
+                        )}
                       </div>
-                    )}
 
-                    {/* Observações */}
-                    {morador.observacoes && (
-                      <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-3">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <p className="text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1">Observações</p>
-                            <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{morador.observacoes}</p>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <InfoItem icon={User} label="CPF" value={morador.cpf} />
+                        <InfoItem icon={MapPin} label="Local de Abordagem" value={morador.local_abordagem} />
+                        <InfoItem 
+                          icon={Calendar} 
+                          label="Data de Nascimento" 
+                          value={morador.data_nascimento ? format(new Date(morador.data_nascimento), "dd/MM/yyyy", { locale: ptBR }) : undefined} 
+                        />
+                        <InfoItem icon={Users} label="Sexo" value={morador.sexo} />
+                        <InfoItem icon={HandHelping} label="Tempo em Situação de Rua" value={morador.tempo_situacao_rua} />
+                        <InfoItem icon={CalendarClock} label="Tempo em Laguna" value={morador.tempo_em_laguna} />
+                        <InfoItem icon={MapPin} label="Bairro" value={morador.bairro} />
+                        <InfoItem icon={MapPin} label="Rua" value={morador.rua} />
+                        {morador.nome_mae && (
+                          <div className="md:col-span-2">
+                            <InfoItem icon={User} label="Nome da Mãe" value={morador.nome_mae} />
                           </div>
+                        )}
+                        {morador.cidade_natal && (
+                          <div className="md:col-span-2">
+                            <InfoItem icon={MapPin} label="Cidade Natal" value={morador.cidade_natal} />
+                          </div>
+                        )}
+                        {morador.tempo_pretende_ficar && (
+                          <div className="md:col-span-2">
+                            <InfoItem icon={CalendarClock} label="Tempo que Pretende Ficar" value={morador.tempo_pretende_ficar} />
+                          </div>
+                        )}
+                        {morador.informacoes_local && (
+                          <div className="md:col-span-2">
+                            <InfoItem icon={MapPin} label="Informações do Local" value={morador.informacoes_local} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {(morador.recebe_auxilio || morador.possui_vicios || morador.passagens_policia || morador.procurou_assistencia_social) && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</p>
+                      <div className="flex flex-wrap gap-2">
+                        {morador.recebe_auxilio && (
+                          <Badge variant="secondary" className="px-3 py-1.5 text-sm font-semibold">
+                            <HandHelping className="mr-1.5 h-4 w-4" />
+                            Auxílio{morador.qual_auxilio ? `: ${morador.qual_auxilio}` : ''}
+                          </Badge>
+                        )}
+                        {morador.possui_vicios && (
+                          <Badge variant="outline" className="px-3 py-1.5 text-sm font-semibold">
+                            <AlertCircle className="mr-1.5 h-4 w-4" />
+                            Possui Vícios
+                          </Badge>
+                        )}
+                        {morador.passagens_policia && (
+                          <Badge variant="destructive" className="px-3 py-1.5 text-sm font-semibold">
+                            Passagens Policiais
+                          </Badge>
+                        )}
+                        {morador.procurou_assistencia_social && (
+                          <Badge variant="secondary" className="px-3 py-1.5 text-sm font-semibold">
+                            Assistência Social
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {morador.observacoes && (
+                    <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/20">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+                        <div className="flex-1">
+                          <p className="text-sm font-bold uppercase tracking-wide text-amber-900 dark:text-amber-100">Observações</p>
+                          <p className="mt-1 text-sm font-medium leading-relaxed text-amber-800 dark:text-amber-200">{morador.observacoes}</p>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-3">
+                    <Button 
+                      variant="secondary" 
+                      className="flex-1 min-w-[160px] font-semibold"
+                      onClick={() => navigate(`/detalhes-cadastro/${morador.id}`)}
+                    >
+                      Ver detalhes
+                    </Button>
+                    {!permissions?.isReadOnly && (
+                      <Button 
+                        className="flex-1 min-w-[160px] font-semibold"
+                        onClick={() => navigate(`/editar-cadastro/${morador.id}`)}
+                      >
+                        Editar cadastro
+                      </Button>
                     )}
                   </div>
                 </CardContent>
@@ -456,6 +448,6 @@ const Cadastrados = () => {
       </div>
     </AppLayout>
   );
-};
+}
 
 export default Cadastrados;
