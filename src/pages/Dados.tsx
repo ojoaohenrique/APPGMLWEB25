@@ -241,19 +241,19 @@ const Dados = () => {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                  <span className="text-sm font-medium">Total de Cadastros</span>
-                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalCadastros}</span>
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">Total de Cadastros</span>
+                  <span className="text-lg font-bold text-red-600 dark:text-red-400">{totalCadastros}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                  <span className="text-sm font-medium">Com Auxílio</span>
-                  <span className="text-lg font-bold text-green-600 dark:text-green-400">{comAuxilio}</span>
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">Com Auxílio</span>
+                  <span className="text-lg font-bold text-red-600 dark:text-red-400">{comAuxilio}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
-                  <span className="text-sm font-medium">Com Vícios</span>
-                  <span className="text-lg font-bold text-amber-600 dark:text-amber-400">{comVicios}</span>
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">Com Vícios</span>
+                  <span className="text-lg font-bold text-red-600 dark:text-red-400">{comVicios}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
-                  <span className="text-sm font-medium">Com Passagens</span>
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">Com Passagens</span>
                   <span className="text-lg font-bold text-red-600 dark:text-red-400">{comPassagens}</span>
                 </div>
               </div>
