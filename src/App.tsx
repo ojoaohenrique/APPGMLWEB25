@@ -24,6 +24,7 @@ const App = () => (
           {/* Rota de cadastro público removida - apenas via Supabase */}
           <Route path="/cadastrados" element={<Cadastrados />} />
           <Route path="/cadastrado/:id" element={<DetalhesCadastro />} />
+          <Route path="/detalhes-cadastro/:id" element={<DetalhesCadastro />} />
           <Route path="/novo-cadastro" element={<NovoCadastro />} />
           <Route path="/editar-cadastro/:id" element={<NovoCadastro />} />
           <Route path="/teste" element={<TestePage />} />

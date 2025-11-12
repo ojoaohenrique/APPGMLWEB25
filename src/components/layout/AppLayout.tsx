@@ -60,18 +60,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           <header className="sticky top-0 z-10 h-14 border-b border-border bg-card/50 backdrop-blur px-4">
             <div className="flex h-full items-center justify-between gap-4">
               <SidebarTrigger className="text-muted-foreground transition-colors hover:text-foreground" />
-              <div className="flex items-center gap-3">
-                <span className="hidden text-sm font-semibold text-muted-foreground sm:inline">
-                  Guarda Municipal de Laguna
-                </span>
-                <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-primary/40 bg-white shadow-xl ring-2 ring-primary/20">
-                  <img
-                    src="/logo-guarda.png"
-                    alt="Logo Guarda Municipal"
-                    className="h-full w-full object-cover scale-110"
-                  />
-                </div>
-              </div>
+              <span className="hidden text-sm font-semibold text-muted-foreground sm:inline">
+                Guarda Municipal de Laguna
+              </span>
             </div>
           </header>
           <div className="p-4 md:p-6 lg:p-8">
