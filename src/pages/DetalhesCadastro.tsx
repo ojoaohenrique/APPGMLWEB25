@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, User, Calendar, MapPin, Phone, Briefcase, 
   Home, Clock, HandHelping, AlertCircle, Edit, Image as ImageIcon,
-  MapPinned, FileText, Download, FileJson
+  MapPinned, FileText, Download, FileJson, X, ZoomIn
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -23,6 +24,7 @@ const DetalhesCadastro = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   // Buscar dados do morador
   const { data: morador, isLoading } = useQuery({
@@ -184,12 +186,19 @@ const DetalhesCadastro = () => {
             <Card className="border-2">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center">
-                  <Avatar className="h-56 w-56 border-4 border-primary/30 shadow-2xl ring-4 ring-primary/10">
-                    <AvatarImage src={morador.foto_url || undefined} className="object-cover" />
-                    <AvatarFallback className="text-6xl bg-primary/10 text-primary font-bold">
-                      {getInitials(morador.nome_completo)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative group cursor-pointer" onClick={() => morador.foto_url && setFotoAmpliada(morador.foto_url)}>
+                    <Avatar className="h-56 w-56 border-4 border-primary/30 shadow-2xl ring-4 ring-primary/10 transition-all group-hover:ring-primary/40">
+                      <AvatarImage src={morador.foto_url || undefined} className="object-cover" />
+                      <AvatarFallback className="text-6xl bg-primary/10 text-primary font-bold">
+                        {getInitials(morador.nome_completo)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {morador.foto_url && (
+                      <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <ZoomIn className="h-12 w-12 text-white" />
+                      </div>
+                    )}
+                  </div>
                   <h2 className="text-3xl font-bold mt-6 text-center leading-tight">{morador.nome_completo}</h2>
                   {morador.cpf && (
                     <div className="mt-3 bg-secondary/50 px-4 py-2 rounded-lg">
@@ -409,12 +418,19 @@ const DetalhesCadastro = () => {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {fotosAdicionais.map((foto) => (
                       <div key={foto.id} className="relative group">
-                        <img
-                          src={foto.url}
-                          alt={foto.descricao || 'Foto adicional'}
-                          className="w-full h-40 object-cover rounded-lg border-2 border-border hover:border-primary hover:shadow-lg transition-all cursor-pointer"
-                          onClick={() => window.open(foto.url, '_blank')}
-                        />
+                        <div 
+                          className="relative overflow-hidden rounded-lg border-2 border-border hover:border-primary transition-all cursor-pointer"
+                          onClick={() => setFotoAmpliada(foto.url)}
+                        >
+                          <img
+                            src={foto.url}
+                            alt={foto.descricao || 'Foto adicional'}
+                            className="w-full h-40 object-cover transition-transform group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <ZoomIn className="h-8 w-8 text-white" />
+                          </div>
+                        </div>
                         {foto.descricao && (
                           <p className="text-sm text-muted-foreground mt-2 font-medium truncate">{foto.descricao}</p>
                         )}
@@ -426,6 +442,29 @@ const DetalhesCadastro = () => {
             )}
           </div>
         </div>
+
+        {/* Modal de Foto Ampliada */}
+        {fotoAmpliada && (
+          <div 
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-pointer"
+            onClick={() => setFotoAmpliada(null)}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 text-white hover:bg-white/20"
+              onClick={() => setFotoAmpliada(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <img
+              src={fotoAmpliada}
+              alt="Foto ampliada"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
       </div>
     </AppLayout>
   );
