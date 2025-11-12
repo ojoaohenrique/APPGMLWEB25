@@ -45,6 +45,7 @@ const NovoCadastro = () => {
   const [recebeAuxilio, setRecebeAuxilio] = useState(false);
   const [qualAuxilio, setQualAuxilio] = useState("");
   const [tempoSituacaoRua, setTempoSituacaoRua] = useState("");
+  const [motivoSituacaoRua, setMotivoSituacaoRua] = useState("");
   const [tempoEmLaguna, setTempoEmLaguna] = useState("");
   const [tempoPretendeFicar, setTempoPretendeFicar] = useState("");
   const [procurouAssistencia, setProcurouAssistencia] = useState(false);
@@ -167,6 +168,7 @@ const NovoCadastro = () => {
             setRecebeAuxilio(data.recebe_auxilio || false);
             setQualAuxilio(data.qual_auxilio || "");
             setTempoSituacaoRua(data.tempo_situacao_rua || "");
+            setMotivoSituacaoRua(data.motivo_situacao_rua || "");
             setTempoEmLaguna(data.tempo_em_laguna || "");
             setTempoPretendeFicar(data.tempo_pretende_ficar || "");
             setProcurouAssistencia(data.procurou_assistencia_social || false);
@@ -376,6 +378,7 @@ const NovoCadastro = () => {
         recebe_auxilio: recebeAuxilio,
         qual_auxilio: qualAuxilio || null,
         tempo_situacao_rua: tempoSituacaoRua || null,
+        motivo_situacao_rua: motivoSituacaoRua || null,
         tempo_em_laguna: tempoEmLaguna || null,
         tempo_pretende_ficar: tempoPretendeFicar || null,
         procurou_assistencia_social: procurouAssistencia,
@@ -682,17 +685,28 @@ const NovoCadastro = () => {
                 </div>
               )}
 
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="tempoRua">Tempo em situação de rua</Label>
-                  <Input
-                    id="tempoRua"
-                    value={tempoSituacaoRua}
-                    onChange={(e) => setTempoSituacaoRua(e.target.value)}
-                    placeholder="Ex: 6 meses"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="tempoRua">Tempo em situação de rua</Label>
+                <Input
+                  id="tempoRua"
+                  value={tempoSituacaoRua}
+                  onChange={(e) => setTempoSituacaoRua(e.target.value)}
+                  placeholder="Ex: 6 meses"
+                />
+              </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="motivoRua">Motivo da situação de rua</Label>
+                <Textarea
+                  id="motivoRua"
+                  value={motivoSituacaoRua}
+                  onChange={(e) => setMotivoSituacaoRua(e.target.value)}
+                  placeholder="Descreva o motivo pelo qual a pessoa está em situação de rua..."
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="tempoLaguna">Tempo em Laguna</Label>
                   <Input

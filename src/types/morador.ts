@@ -18,6 +18,7 @@ export interface Morador {
   recebe_auxilio: boolean;
   qual_auxilio?: string;
   tempo_situacao_rua?: string;
+  motivo_situacao_rua?: string;
   tempo_em_laguna?: string;
   tempo_pretende_ficar?: string;
   procurou_assistencia_social: boolean;

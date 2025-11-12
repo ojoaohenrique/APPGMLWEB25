@@ -10,16 +10,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, User, Calendar, MapPin, Phone, Briefcase, 
   Home, Clock, HandHelping, AlertCircle, Edit, Image as ImageIcon,
-  MapPinned, FileText
+  MapPinned, FileText, Download, FileJson
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CriadorInfo } from "@/components/CriadorInfo";
+import { exportarMoradorJSON, exportarMoradorCSV } from "@/lib/exportUtils";
+import { useToast } from "@/hooks/use-toast";
 
 const DetalhesCadastro = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Buscar dados do morador
   const { data: morador, isLoading } = useQuery({
@@ -140,10 +143,38 @@ const DetalhesCadastro = () => {
               />
             )}
           </div>
-          <Button onClick={() => navigate(`/editar-cadastro/${id}`)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Editar Cadastro
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                exportarMoradorJSON(morador);
+                toast({
+                  title: "Exportado!",
+                  description: "Dados exportados em formato JSON",
+                });
+              }}
+            >
+              <FileJson className="mr-2 h-4 w-4" />
+              Exportar JSON
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                exportarMoradorCSV(morador);
+                toast({
+                  title: "Exportado!",
+                  description: "Dados exportados em formato CSV",
+                });
+              }}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar CSV
+            </Button>
+            <Button onClick={() => navigate(`/editar-cadastro/${id}`)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Editar Cadastro
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -316,6 +347,12 @@ const DetalhesCadastro = () => {
                   <div className="bg-secondary/30 rounded-lg p-4 border border-secondary">
                     <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide">Tempo em Situação de Rua</p>
                     <p className="font-bold text-lg">{morador.tempo_situacao_rua}</p>
+                  </div>
+                )}
+                {morador.motivo_situacao_rua && (
+                  <div className="bg-secondary/30 rounded-lg p-4 border border-secondary md:col-span-2">
+                    <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide">Motivo da Situação de Rua</p>
+                    <p className="font-bold text-base leading-relaxed">{morador.motivo_situacao_rua}</p>
                   </div>
                 )}
                 {morador.tempo_em_laguna && (

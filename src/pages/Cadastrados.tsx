@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, User, Calendar, Edit, Trash2, AlertCircle, RefreshCw, Users, CalendarClock, HandHelping } from "lucide-react";
+import { Search, MapPin, User, Calendar, Edit, Trash2, AlertCircle, RefreshCw, Users, CalendarClock, HandHelping, Download, FileJson } from "lucide-react";
 import { type LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Morador } from "@/types/morador";
@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { usePermissions } from "@/hooks/usePermissions";
+import { exportarTodosMoradoresCSV, exportarTodosMoradoresJSON } from "@/lib/exportUtils";
 
 const Cadastrados = () => {
   const navigate = useNavigate();
@@ -144,10 +145,40 @@ const Cadastrados = () => {
               {moradoresFiltrados.length} {moradoresFiltrados.length === 1 ? 'morador cadastrado' : 'moradores cadastrados'}
             </p>
           </div>
-          <Button onClick={() => navigate("/novo-cadastro")} className="bg-primary">
-            <User className="mr-2 h-4 w-4" />
-            Novo Cadastro
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                exportarTodosMoradoresJSON(moradores);
+                toast({
+                  title: "Exportado!",
+                  description: `${moradores.length} cadastros exportados em JSON`,
+                });
+              }}
+              disabled={moradores.length === 0}
+            >
+              <FileJson className="mr-2 h-4 w-4" />
+              Exportar Todos (JSON)
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                exportarTodosMoradoresCSV(moradores);
+                toast({
+                  title: "Exportado!",
+                  description: `${moradores.length} cadastros exportados em CSV`,
+                });
+              }}
+              disabled={moradores.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar Todos (CSV)
+            </Button>
+            <Button onClick={() => navigate("/novo-cadastro")} className="bg-primary">
+              <User className="mr-2 h-4 w-4" />
+              Novo Cadastro
+            </Button>
+          </div>
         </div>
 
         {/* Cards de Estatísticas */}
@@ -355,6 +386,11 @@ const Cadastrados = () => {
                         <InfoItem icon={Users} label="Sexo" value={morador.sexo} />
                         <InfoItem icon={HandHelping} label="Tempo em Situação de Rua" value={morador.tempo_situacao_rua} />
                         <InfoItem icon={CalendarClock} label="Tempo em Laguna" value={morador.tempo_em_laguna} />
+                        {morador.motivo_situacao_rua && (
+                          <div className="md:col-span-2">
+                            <InfoItem icon={AlertCircle} label="Motivo da Situação de Rua" value={morador.motivo_situacao_rua} />
+                          </div>
+                        )}
                         <InfoItem icon={MapPin} label="Bairro" value={morador.bairro} />
                         <InfoItem icon={MapPin} label="Rua" value={morador.rua} />
                         {morador.nome_mae && (
