@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import NovoCadastro from "./pages/NovoCadastro";
 import Cadastrados from "./pages/Cadastrados";
 import DetalhesCadastro from "./pages/DetalhesCadastro";
+import Dados from "./pages/Dados";
 import TestePage from "./pages/TestePage";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/detalhes-cadastro/:id" element={<DetalhesCadastro />} />
           <Route path="/novo-cadastro" element={<NovoCadastro />} />
           <Route path="/editar-cadastro/:id" element={<NovoCadastro />} />
+          <Route path="/dados" element={<Dados />} />
           <Route path="/teste" element={<TestePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -52,12 +52,10 @@ const Dashboard = () => {
             <h1 className="text-3xl font-bold">Painel Geral</h1>
             <p className="text-muted-foreground">Visão geral dos cadastros</p>
           </div>
-          <img 
-            src="/logo-guarda.png" 
-            alt="Logo Guarda Municipal" 
-            className="h-24 w-24 object-contain"
-            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
-          />
+          <div className="text-right">
+            <h2 className="text-2xl font-bold text-primary">GM Laguna</h2>
+            <p className="text-sm text-muted-foreground">Guarda Municipal</p>
+          </div>
         </div>
 
         {/* 3 Cards de Acesso Rápido */}

@@ -1,4 +1,4 @@
-import { Home, List, UserPlus, LogOut, Shield } from "lucide-react";
+import { Home, List, UserPlus, LogOut, Shield, BarChart3 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -22,6 +22,7 @@ const items = [
   { title: "Painel Geral", url: "/", icon: Home },
   { title: "Cadastrados", url: "/cadastrados", icon: List },
   { title: "Novo Cadastro", url: "/novo-cadastro", icon: UserPlus },
+  { title: "Dados", url: "/dados", icon: BarChart3 },
 ];
 
 export function AppSidebar() {
